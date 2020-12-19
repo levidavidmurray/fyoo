@@ -1,5 +1,6 @@
-const MODAL_TITLE = 'It appears you didn\'t view the submission';
-const MODAL_TEXT = 'Make sure to read or view the submitted link before sharing your opinion. It\'s better for your own self-development, and helps to drive a higher quality discussion surrounding the topic.';
+const MODAL_TITLE = 'It appears you haven\'t clicked the link';
+const MODAL_OVERRIDE = 'I\'d rather read the comments';
+const MODAL_TEXT = 'Make sure to read or view the submitted link before reading others\' opinions, and/or sharing your own. It\'s better for your own self-development, and it also helps to create a higher quality discussion of the topic.';
 
 function sendMessage(message) {
   browser.runtime.sendMessage(message);
@@ -21,14 +22,18 @@ function handlePostItem(item) {
   }
 }
 
+function setViewedPost(postId) {
+  sendMessage({type: "setViewedPost", postId});
+}
+
 function addAnchorListener(anchorTag, postId) {
-  anchorTag.onclick = () => sendMessage({type: "setViewedPost", postId});
+  anchorTag.onclick = () => setViewedPost(postId);
 }
 
 function presentModal(item) {
   console.log("PRESENT MODAL!");
   try {
-    const existingModal = document.querySelector('#opinion-modal');
+    const existingModal = document.querySelector('#fyoo-modal');
 
     if (existingModal) {
       document.body.removeChild(existingModal);
@@ -37,24 +42,40 @@ function presentModal(item) {
     const anchorTag = item.querySelector('a.storylink');
 
     const modalDiv = document.createElement("div");
-    modalDiv.id = 'opinion-modal';
+    modalDiv.id = 'fyoo-modal';
+
+    const stopIcon = document.createElement('img');
+    stopIcon.src = browser.runtime.getURL("icons/stop.svg");
 
     const title = document.createElement('h5');
     title.appendChild(document.createTextNode(MODAL_TITLE));
+
     const description = document.createElement('p');
     description.appendChild(document.createTextNode(MODAL_TEXT));
+
     const postLink = document.createElement('a');
     postLink.href = anchorTag.href;
+    postLink.classList.add('post-link');
     postLink.appendChild(document.createTextNode(anchorTag.innerText));
     addAnchorListener(postLink, item.id);
 
+    const overrideLink = document.createElement('a');
+    overrideLink.appendChild(document.createTextNode(MODAL_OVERRIDE));
+    overrideLink.src = '#';
+    overrideLink.classList.add('override-link');
+    overrideLink.onclick = () => {
+      setViewedPost(item.id);
+      window.location.reload();
+    }
+
+    modalDiv.appendChild(stopIcon);
     modalDiv.appendChild(title);
     modalDiv.appendChild(description);
     modalDiv.appendChild(postLink);
+    modalDiv.appendChild(overrideLink);
 
     document.body.appendChild(modalDiv);
 
-    console.log(modalDiv);
   } catch (error) {
     console.error(error);
   }
@@ -77,8 +98,8 @@ if (itemList) {
         console.log(`didView ${itemEl.id}:`, didView);
         if (!didView && handlePostItem(itemEl)) {
           // Add anchor listener, blur comments and form, present modal with link to submission, override option
-          document.querySelector('table.fatitem form').classList.add('improbable-opinion');
-          document.querySelector('.comment-tree').classList.add('improbable-opinion');
+          document.querySelector('table.fatitem form').classList.add('blur');
+          document.querySelector('.comment-tree').classList.add('blur');
           presentModal(itemEl);
         } else {
           // If option enabled—blur comments & show form
