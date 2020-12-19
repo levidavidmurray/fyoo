@@ -1,0 +1,41 @@
+{
+  "manifest_version": 2,
+  "name": "FYOA",
+  "version": "1.0",
+
+  "description": "Prevents you from reading or submitting comments on hackernews or reddit before you've read the linked article.",
+
+  "icons": {
+    "48": "icons/border-48.png"
+  },
+
+  "permissions": [
+    "notifications",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://news.ycombinator.com/news",
+        "*://news.ycombinator.com/newest",
+        "*://news.ycombinator.com/front",
+        "*://news.ycombinator.com/show"
+      ],
+      "js": ["content_scripts/listing_rewrite.js"]
+    },
+    {
+      "matches": [
+        "*://news.ycombinator.com/item?*"
+      ],
+      "js": ["content_scripts/listing_rewrite.js"],
+      "css": ["css/hn.css"]
+    }
+  ]
+}
