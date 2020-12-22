@@ -9,10 +9,10 @@ try {
     console.log(viewedPosts);
     switch (request.type) {
       case SET_VIEW_POST:
-        viewedPosts[request.postId] = true;
+        viewedPosts[request.href] = true;
         return sendResponse(true);
       case CHECK_POST:
-        return sendResponse(Boolean(viewedPosts[request.postId]));
+        return sendResponse(Boolean(viewedPosts[request.href]));
       default:
         return sendResponse(undefined);
     }
